@@ -1,4 +1,4 @@
-# Install script for directory: /home/ysh/Desktop/code/Os_C
+# Install script for directory: /home/ysh/CLionProjects/Os_C
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/ysh/Desktop/code/Os_C/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/ysh/CLionProjects/Os_C/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

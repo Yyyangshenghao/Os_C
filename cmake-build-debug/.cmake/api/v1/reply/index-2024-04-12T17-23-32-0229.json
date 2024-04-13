@@ -4,29 +4,29 @@
 		"generator" : 
 		{
 			"multiConfig" : false,
-			"name" : "Ninja"
+			"name" : "Unix Makefiles"
 		},
 		"paths" : 
 		{
-			"cmake" : "/snap/clion/265/bin/cmake/linux/x64/bin/cmake",
-			"cpack" : "/snap/clion/265/bin/cmake/linux/x64/bin/cpack",
-			"ctest" : "/snap/clion/265/bin/cmake/linux/x64/bin/ctest",
-			"root" : "/snap/clion/265/bin/cmake/linux/x64/share/cmake-3.27"
+			"cmake" : "/snap/clion/274/bin/cmake/linux/x64/bin/cmake",
+			"cpack" : "/snap/clion/274/bin/cmake/linux/x64/bin/cpack",
+			"ctest" : "/snap/clion/274/bin/cmake/linux/x64/bin/ctest",
+			"root" : "/snap/clion/274/bin/cmake/linux/x64/share/cmake-3.28"
 		},
 		"version" : 
 		{
 			"isDirty" : false,
 			"major" : 3,
-			"minor" : 27,
-			"patch" : 8,
-			"string" : "3.27.8",
+			"minor" : 28,
+			"patch" : 1,
+			"string" : "3.28.1",
 			"suffix" : ""
 		}
 	},
 	"objects" : 
 	[
 		{
-			"jsonFile" : "codemodel-v2-8912b2684cafb30d8189.json",
+			"jsonFile" : "codemodel-v2-b7e4860fef19bf9fd85a.json",
 			"kind" : "codemodel",
 			"version" : 
 			{
@@ -35,7 +35,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cache-v2-0337353cab424350120a.json",
+			"jsonFile" : "cache-v2-f2df7be83815401bcd31.json",
 			"kind" : "cache",
 			"version" : 
 			{
@@ -44,7 +44,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cmakeFiles-v1-ccd40f0ca9109a93773a.json",
+			"jsonFile" : "cmakeFiles-v1-564615825f46bbf52b64.json",
 			"kind" : "cmakeFiles",
 			"version" : 
 			{
@@ -66,7 +66,7 @@
 	{
 		"cache-v2" : 
 		{
-			"jsonFile" : "cache-v2-0337353cab424350120a.json",
+			"jsonFile" : "cache-v2-f2df7be83815401bcd31.json",
 			"kind" : "cache",
 			"version" : 
 			{
@@ -76,7 +76,7 @@
 		},
 		"cmakeFiles-v1" : 
 		{
-			"jsonFile" : "cmakeFiles-v1-ccd40f0ca9109a93773a.json",
+			"jsonFile" : "cmakeFiles-v1-564615825f46bbf52b64.json",
 			"kind" : "cmakeFiles",
 			"version" : 
 			{
@@ -86,7 +86,7 @@
 		},
 		"codemodel-v2" : 
 		{
-			"jsonFile" : "codemodel-v2-8912b2684cafb30d8189.json",
+			"jsonFile" : "codemodel-v2-b7e4860fef19bf9fd85a.json",
 			"kind" : "codemodel",
 			"version" : 
 			{

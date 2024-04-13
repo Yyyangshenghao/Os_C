@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/home/ysh/Desktop/code/Os_C/cmake-build-debug",
-		"source" : "/home/ysh/Desktop/code/Os_C"
+		"build" : "/home/ysh/CLionProjects/Os_C/cmake-build-debug",
+		"source" : "/home/ysh/CLionProjects/Os_C"
 	},
 	"version" : 
 	{

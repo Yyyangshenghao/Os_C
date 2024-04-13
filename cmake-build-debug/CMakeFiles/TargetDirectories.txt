@@ -1,3 +1,3 @@
-/home/ysh/Desktop/code/Os_C/cmake-build-debug/CMakeFiles/Os_C.dir
-/home/ysh/Desktop/code/Os_C/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/ysh/Desktop/code/Os_C/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/ysh/CLionProjects/Os_C/cmake-build-debug/CMakeFiles/Os_C.dir
+/home/ysh/CLionProjects/Os_C/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/ysh/CLionProjects/Os_C/cmake-build-debug/CMakeFiles/rebuild_cache.dir

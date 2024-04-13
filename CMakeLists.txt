@@ -9,4 +9,5 @@ add_executable(Os_C main.c
         lsh_split_line.c
         lsh_builtins.c
         lsh_builtins.h
+        main.c
 )
