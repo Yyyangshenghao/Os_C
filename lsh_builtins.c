@@ -6,6 +6,7 @@ char *builtin_str[] = {
         "help",
         "exit",
         "ls",
+        "cat",
 };
 
 int (*builtin_func[]) (char **) = {
@@ -13,6 +14,7 @@ int (*builtin_func[]) (char **) = {
         &lsh_help,
         &lsh_exit,
         &lsh_ls,
+        &lsh_cat,
 };
 
 int lsh_num_builtins() {
@@ -59,34 +61,16 @@ int lsh_ls(char **args)
     struct dirent *entry;
     struct stat file_stat;
 
-    int show_all = 0;           // -a
-    int show_hidden = 0;        // -l
-    int long_format = 0;        // -h
-
     // 如果没有参数，执行默认的 ls 操作
-    if(args[1] == NULL) {
-        int i = 1; // 跳过命令名
-        while(args[i] != NULL){
-            // 如果参数是选项“-a”，则设置显示隐藏文件标志
-            if(strcmp(args[i], "-a") == 0){
-                show_hidden = 1;
-            }
-
-            // 如果参数是选项“-l”，则设置以长格式显示标志
-            else if(strcmp(args[i], "-l") == 0){
-                long_format = 1;
-            }
-        }
-
-
+    if (args[1] == NULL) {
         dir = opendir(".");
         if (dir == NULL) {
             perror("opendir");
-            return 1; //返回1表示执行失败
+            return 1;  // 返回1表示执行失败
         }
 
         while ((entry = readdir(dir)) != NULL) {
-            //过滤掉以 . 开头的目录项
+            // 过滤掉以 . 开头的目录项
             if (entry->d_name[0] != '.') {
                 printf("%s\n", entry->d_name);
             }
@@ -145,6 +129,10 @@ int lsh_ls(char **args)
     return 1;
 }
 
+int lsh_cat(char **args)
+{
+
+}
 
 int lsh_exit(char **args)
 {
