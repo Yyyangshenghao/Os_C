@@ -1,1 +1,0 @@
-/usr/bin/cc -g CMakeFiles/Os_C.dir/main.c.o CMakeFiles/Os_C.dir/lsh_readline.c.o CMakeFiles/Os_C.dir/lsh_split_line.c.o CMakeFiles/Os_C.dir/lsh_builtins.c.o -o Os_C 

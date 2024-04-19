@@ -126,6 +126,11 @@ int lsh_ls(char **args)
         closedir(dir);
     }
 
+    else{
+        printf("'%s'为未知的参数\n",args[1]);
+        return 1;
+    }
+
     return 1;
 }
 

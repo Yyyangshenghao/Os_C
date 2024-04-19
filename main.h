@@ -13,9 +13,11 @@
 #include <pwd.h>
 #include <grp.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 char *lsh_read_line(void);
 char **lsh_split_line(char *line);
-void lsh_loop(void);
+void lsh_loop(const char *history_file);
 int lsh_launch(char **args);
 int lsh_execute(char **args);

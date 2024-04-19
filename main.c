@@ -3,17 +3,25 @@
 
 #define PATH_MAX 1024
 
-void lsh_loop(void)
+void lsh_loop(const char *history_file)
 {
     char cwd[PATH_MAX];
     char *line;
     char **args;
     int status;
 
+    using_history();
+    read_history(history_file);
+
     do {
         getcwd(cwd, sizeof(cwd)); // 获取当前工作目录
-        printf("%s>", cwd); // 打印当前工作目录
+        printf("%s", cwd); // 打印当前工作目录
         line = lsh_read_line();
+        if(line != NULL){
+            add_history(line);
+            append_history(1, history_file); // 实时保存到历史文件
+        }
+
         args = lsh_split_line(line);
         status = lsh_execute(args);
 
@@ -67,11 +75,20 @@ int lsh_execute(char **args)
     return lsh_launch(args);
 }
 
+void save_history(const char *history_file) {
+    write_history(history_file);
+}
+
 int main()
 {
-    // 运行命令循环
-    lsh_loop();
+    char* history_file = ".lsh_history";
+    char history_path[PATH_MAX];
+    snprintf(history_path, sizeof(history_path), "%s/%s", getenv("HOME"), history_file);
 
+    // 运行命令循环
+    lsh_loop(history_path);
+
+    save_history(history_path);
     return EXIT_SUCCESS;
 }
 

@@ -11,3 +11,5 @@ add_executable(Os_C main.c
         lsh_builtins.h
         main.c
 )
+
+target_link_libraries(Os_C /usr/lib/x86_64-linux-gnu/libreadline.so.8)
