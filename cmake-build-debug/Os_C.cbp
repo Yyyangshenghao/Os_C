@@ -82,9 +82,6 @@
 		<Unit filename="/home/ysh/CLionProjects/Os_C/lsh_builtins.h">
 			<Option target="Os_C"/>
 		</Unit>
-		<Unit filename="/home/ysh/CLionProjects/Os_C/lsh_readline.c">
-			<Option target="Os_C"/>
-		</Unit>
 		<Unit filename="/home/ysh/CLionProjects/Os_C/lsh_split_line.c">
 			<Option target="Os_C"/>
 		</Unit>

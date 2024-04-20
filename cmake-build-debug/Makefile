@@ -153,30 +153,6 @@ lsh_builtins.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/lsh_builtins.c.s
 .PHONY : lsh_builtins.c.s
 
-lsh_readline.o: lsh_readline.c.o
-.PHONY : lsh_readline.o
-
-# target to build an object file
-lsh_readline.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/lsh_readline.c.o
-.PHONY : lsh_readline.c.o
-
-lsh_readline.i: lsh_readline.c.i
-.PHONY : lsh_readline.i
-
-# target to preprocess a source file
-lsh_readline.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/lsh_readline.c.i
-.PHONY : lsh_readline.c.i
-
-lsh_readline.s: lsh_readline.c.s
-.PHONY : lsh_readline.s
-
-# target to generate assembly for a file
-lsh_readline.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/lsh_readline.c.s
-.PHONY : lsh_readline.c.s
-
 lsh_split_line.o: lsh_split_line.c.o
 .PHONY : lsh_split_line.o
 
@@ -237,9 +213,6 @@ help:
 	@echo "... lsh_builtins.o"
 	@echo "... lsh_builtins.i"
 	@echo "... lsh_builtins.s"
-	@echo "... lsh_readline.o"
-	@echo "... lsh_readline.i"
-	@echo "... lsh_readline.s"
 	@echo "... lsh_split_line.o"
 	@echo "... lsh_split_line.i"
 	@echo "... lsh_split_line.s"

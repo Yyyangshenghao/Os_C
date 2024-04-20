@@ -9,4 +9,4 @@ int lsh_help(char **args);
 int lsh_exit(char **args);
 int lsh_ls(char **args);
 int lsh_cat(char **args);
-
+int lsh_history(char **args);

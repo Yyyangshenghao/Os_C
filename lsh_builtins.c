@@ -1,5 +1,14 @@
-#include "main.h"
 #include "lsh_builtins.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <time.h>
+#include <pwd.h>
+#include <grp.h>
+#include <readline/history.h>
 
 char *builtin_str[] = {
         "cd",
@@ -7,6 +16,7 @@ char *builtin_str[] = {
         "exit",
         "ls",
         "cat",
+        "history",
 };
 
 int (*builtin_func[]) (char **) = {
@@ -15,6 +25,7 @@ int (*builtin_func[]) (char **) = {
         &lsh_exit,
         &lsh_ls,
         &lsh_cat,
+        &lsh_history,
 };
 
 int lsh_num_builtins() {
@@ -26,8 +37,7 @@ int lsh_num_builtins() {
   内置命令的函数实现。
 */
 #define PATH_MAX 1024
-int lsh_cd(char **args)
-{
+int lsh_cd(char **args) {
     char cwd[PATH_MAX];
     if (args[1] == NULL) {
         getcwd(cwd, sizeof(cwd));
@@ -40,8 +50,7 @@ int lsh_cd(char **args)
     return 1;
 }
 
-int lsh_help(char **args)
-{
+int lsh_help(char **args) {
     int i;
     printf("21013139's LSH\n");
     printf("Type program names and arguments, and hit enter.\n");
@@ -55,8 +64,7 @@ int lsh_help(char **args)
     return 1;
 }
 
-int lsh_ls(char **args)
-{
+int lsh_ls(char **args) {
     DIR *dir;
     struct dirent *entry;
     struct stat file_stat;
@@ -86,8 +94,8 @@ int lsh_ls(char **args)
             return 1;
         }
 
-        while((entry = readdir(dir)) != NULL){
-            if(stat(entry->d_name, &file_stat) == -1){
+        while((entry = readdir(dir)) != NULL) {
+            if(stat(entry->d_name, &file_stat) == -1) {
                 perror("stat");
                 return 1;
             }
@@ -134,12 +142,44 @@ int lsh_ls(char **args)
     return 1;
 }
 
-int lsh_cat(char **args)
-{
-
+int lsh_cat(char **args) {
+    char *filename = args[1];
+    FILE *file = fopen(filename,"r");
+    if(file == NULL) {
+        fprintf(stderr,"cat:无法打开文件 %s\n", filename);
+        return 1;
+    }
+    int c;
+    while((c = fgetc(file)) != EOF) {
+        putchar(c);
+    }
+    fclose(file);
+    return 1;
 }
 
-int lsh_exit(char **args)
-{
+int lsh_history(char **args) {
+    if(args[1] == NULL) {
+        HIST_ENTRY **my_history_list = history_list();
+        if(history_list == NULL) {
+            printf("No history available\n");
+            return 1;
+        }
+        int i = 0;
+        while(my_history_list[i] != NULL) {
+            printf("%d\t%s\n", i + history_base, my_history_list[i]->line);
+            i++;
+        }
+        return 1;
+    }
+
+    else {
+        printf("'%s'为未知的参数\n",args[1]);
+        return 1;
+    }
+
+    return 1;
+}
+
+int lsh_exit(char **args) {
     return 0;
 }
