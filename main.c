@@ -1,5 +1,6 @@
 #include "main.h"
 #include "lsh_builtins.h"
+#include "bg.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,17 +13,44 @@
 #include <signal.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <fcntl.h>
 
-#define PATH_MAX 1024
+
 extern char *builtin_str[];
 extern int (*builtin_func[]) (char **);
 
 volatile sig_atomic_t background_counter = 0; // 记录后台任务的序号
+volatile sig_atomic_t child_done = 0; //记录有多少个子进程完成
+
+BackgroundTask *completed_tasks = NULL;
+
+void add_completed_task(int task_number, pid_t pid){
+    BackgroundTask *task = (BackgroundTask *)malloc(sizeof(BackgroundTask));
+    task->task_number = task_number;
+    task->pid = pid;
+    task->next = completed_tasks;
+    completed_tasks = task;
+}
+
+void print_completed_tasks(){
+    BackgroundTask *task = completed_tasks;
+    while(task != NULL){
+        printf("[%d]+ 已完成 %d\n", task->task_number, task->pid);
+        BackgroundTask *temp = task;
+        task = task->next;
+        free(temp);
+    }
+    completed_tasks = NULL;
+}
 
 void sigchld_handler(int sig) {
     int saved_errno = errno;
-    while (waitpid(-1, NULL, WNOHANG) > 0) {
+    pid_t pid;
+
+    while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
         background_counter--; // 后台任务完成，减少计数器
+        add_completed_task(background_counter + 1, pid);
+        child_done++;
     }
     errno = saved_errno;
 }
@@ -39,7 +67,7 @@ void setup_signal_handlers() {
 }
 
 void init_history(const char *history_file){
-    stifle_history(1000);
+    stifle_history(100);
     using_history();
     read_history(history_file);
 }
@@ -61,6 +89,11 @@ void lsh_loop(const char *history_file) {
     char *last_command = (last_history_entry != NULL) ? last_history_entry->line : NULL;
 
     do {
+        if(child_done > 0){
+            print_completed_tasks();
+            child_done = 0;
+        }
+
         getcwd(cwd, sizeof(cwd)); // 获取当前工作目录
         char* prompt = malloc(PATH_MAX + 3);
         if (prompt != NULL) {
@@ -87,6 +120,112 @@ void lsh_loop(const char *history_file) {
 
     free(last_command);
 }
+
+// 解析命令中的重定向
+int parse_redirection(char **args, int *in_fd, int *out_fd){
+    for (int i = 0; args[i] != NULL; i++){
+        if (strcmp(args[i], ">") == 0){
+            if (args[i + 1] == NULL){
+                fprintf(stderr, "lsh: 未预期的记号 \"newline\" 附近有语法错误\n");
+                return -1;
+            }
+            *out_fd = open(args[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if (*out_fd == -1){
+                perror("lsh");
+                return -1;
+            }
+            args[i] = NULL;
+            // 将后面的参数前移一位
+            for (int j = i + 1; args[j] != NULL; j++){
+                args[j] = args[j + 1];
+            }
+        } else if (strcmp(args[i], ">>") == 0){
+            if (args[i + 1] == NULL){
+                fprintf(stderr, "lsh: 未预期的记号 \"newline\" 附近有语法错误\n");
+                return -1;
+            }
+            *out_fd = open(args[i + 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
+            if (*out_fd == -1){
+                perror("lsh");
+                return -1;
+            }
+            args[i] = NULL;
+            // 将后面的参数前移一位
+            for (int j = i + 1; args[j] != NULL; j++){
+                args[j] = args[j + 1];
+            }
+        } else if (strcmp(args[i], "<") == 0){
+            if (args[i + 1] == NULL){
+                fprintf(stderr, "lsh: 未预期的记号 \"newline\" 附近有语法错误\n");
+                return -1;
+            }
+            *in_fd = open(args[i + 1], O_RDONLY);
+            if (*in_fd == -1){
+                perror("lsh");
+                return -1;
+            }
+            args[i] = NULL;
+            // 将后面的参数前移一位
+            for (int j = i + 1; args[j] != NULL; j++){
+                args[j] = args[j + 1];
+            }
+        }
+    }
+    return 0;
+}
+
+// 执行单个命令
+int lsh_launch_single(char **args, int in_fd, int out_fd, bool is_background){
+    pid_t pid;
+    int status;
+
+    pid = fork();
+    if (pid == 0){
+        // 子进程
+        if (in_fd != 0){
+            dup2(in_fd, 0);
+            close(in_fd);
+        }
+        if (out_fd != 1){
+            dup2(out_fd, 1);
+            close(out_fd);
+        }
+
+        if (execvp(args[0], args) == -1){
+            printf("'%s' 不是内部或外部命令，也不是可运行的程序\n"
+                   "或批处理文件。\n", args[0]);
+            exit(EXIT_FAILURE);
+        }
+    } else if (pid < 0){
+        // Fork出错
+        printf("Fork Error");
+    } else{
+        // 父进程
+        if (is_background){
+            printf("[%d] %d\n", ++background_counter, pid);
+        } else{
+            waitpid(pid, &status, WUNTRACED); // 等待子进程结束
+        }
+    }
+    return 1;
+}
+
+// 处理管道命令
+int lsh_launch_pipeline(char **commands, int num_commands, bool is_background){
+    int i, in_fd =0, fd[2];
+
+    for (i = 0; i < num_commands - 1; i++){
+        pipe(fd);
+        lsh_launch_single(commands[i], in_fd, fd[1], is_background);
+        close(fd[1]);
+        in_fd = fd[0];
+    }
+
+    lsh_launch_single(commands[i], in_fd, 1, is_background);
+
+    return 1;
+}
+
 
 // 外置命令
 int lsh_launch(char **args, bool is_background) {
@@ -118,6 +257,10 @@ int lsh_launch(char **args, bool is_background) {
 // 选择执行命令
 int lsh_execute(char **args) {
     bool is_background = false;
+    int in_fd = 0, out_fd = 1;
+    char *pipe_commands[128][128];
+    int num_commands = 0, cmd_index = 0, arg_index = 0;
+
     //检查是否有后台运行标记
     for(int i = 0; args[i] != NULL; i++) {
         if (strcmp(args[i], "&") == 0) {
@@ -133,6 +276,24 @@ int lsh_execute(char **args) {
 
     if (args[0] == NULL) {
         // 用户输入了一个空命令
+        return 1;
+    }
+
+    // 解析管道
+    for (int i = 0; args[i] != NULL; i++){
+        if (strcmp(args[i], "|") == 0){
+            pipe_commands[num_commands][cmd_index] = NULL;
+            num_commands++;
+            cmd_index = 0;
+        } else{
+            pipe_commands[num_commands][cmd_index] = args[i];
+        }
+    }
+    pipe_commands[num_commands][cmd_index] = NULL;
+    num_commands++;
+
+    // 解析重定向
+    if (parse_redirection(args, &in_fd, &out_fd) == -1){
         return 1;
     }
 
@@ -158,7 +319,14 @@ int lsh_execute(char **args) {
         }
     }
 
-    return lsh_launch(args, is_background);
+    // 执行命令
+    if (num_commands > 1){
+        return lsh_launch_pipeline(pipe_commands, num_commands, is_background);
+    } else{
+        return lsh_launch_single(args, in_fd, out_fd, is_background);
+    }
+
+//    return lsh_launch(args, is_background);
 }
 
 int main() {
