@@ -304,6 +304,14 @@ int lsh_execute(char **args) {
                 pid_t pid = fork();
                 if(pid == 0){
                     // 子进程执行内置命令
+                    if (in_fd != 0){
+                        dup2(in_fd, 0);
+                        close(in_fd);
+                    }
+                    if (out_fd != 1){
+                        dup2(out_fd, 1);
+                        close(out_fd);
+                    }
                     exit((*builtin_func[i])(args));
                 } else if (pid < 0){
                     perror("fork");
@@ -314,6 +322,14 @@ int lsh_execute(char **args) {
                     return 1;
                 }
             } else{
+                if (in_fd != 0){
+                    dup2(in_fd, 0);
+                    close(in_fd);
+                }
+                if (out_fd != 1){
+                    dup2(out_fd, 1);
+                    close(out_fd);
+                }
                 return (*builtin_func[i])(args);
             }
         }
