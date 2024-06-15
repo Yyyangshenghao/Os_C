@@ -38,6 +38,16 @@ void setup_signal_handlers() {
     }
 }
 
+void init_history(const char *history_file){
+    stifle_history(1000);
+    using_history();
+    read_history(history_file);
+}
+
+void save_history(const char *history_file){
+    write_history(history_file);
+}
+
 void lsh_loop(const char *history_file) {
     char cwd[PATH_MAX];
     char *line;
@@ -46,9 +56,7 @@ void lsh_loop(const char *history_file) {
 
     setup_signal_handlers(); // 设置信号处理函数
 
-    stifle_history(1000); // 限制的最大条目数为1000条
-    using_history();
-    read_history(history_file);
+    init_history(history_file);
     HIST_ENTRY *last_history_entry = history_get(history_length);
     char *last_command = (last_history_entry != NULL) ? last_history_entry->line : NULL;
 
@@ -59,6 +67,7 @@ void lsh_loop(const char *history_file) {
             snprintf(prompt, PATH_MAX + 3, "%s> ", cwd); // 将当前工作目录格式化到提示符中
         }
         line = readline(prompt);
+        free(prompt);
         if (line != NULL && *line) { // 检查用户输入是否为空
             if (last_command == NULL || strcmp(line, last_command) != 0) {
                 add_history(line);
@@ -72,79 +81,53 @@ void lsh_loop(const char *history_file) {
 
         free(line);
         free(args);
-        free(prompt);
         printf("\n");
     } while (status);
+    save_history(history_file);
+
     free(last_command);
 }
 
+// 外置命令
 int lsh_launch(char **args, bool is_background) {
-    if (!is_background) {
-        // 前台处理
-        pid_t pid;
-        int status;
+    pid_t pid;
+    int status;
 
-        pid = fork();
-        if (pid == 0) {
-            // 子进程
-            if (execvp(args[0], args) == -1) {
-                printf( "'%s' 不是内部或外部命令，也不是可运行的程序\n"
-                        "或批处理文件。\n", args[0]);
-                exit(EXIT_FAILURE);
-            }
-        } else if (pid < 0) {
-            // Fork 出错
-            printf("Fork Error");
+    pid = fork();
+    if (pid == 0) {
+        // 子进程
+        if (execvp(args[0], args) == -1) {
+            printf("'%s' 不是内部或外部命令，也不是可运行的程序\n"
+                   "或批处理文件。\n", args[0]);
+            exit(EXIT_FAILURE);
+        }
+    } else if (pid < 0) {
+        // Fork 出错
+        printf("Fork Error");
+    } else {
+        // 父进程
+        if (is_background) {
+            printf("[%d] %d\n", ++background_counter, pid); // 打印后台任务的序号和进程号
         } else {
-            // 父进程
             waitpid(pid, &status, WUNTRACED); // 等待子进程结束
         }
-        return 1;
-    } else {
-        // 后台处理
-        pid_t pid;
-
-        pid = fork();
-        if (pid == 0) {
-            // 子进程
-            for (int i = 0; i < lsh_num_builtins(); i++) {
-                if (strcmp(args[0], builtin_str[i]) == 0) {
-                    if ((*builtin_func[i])(args) == -1) {
-                        printf("内置命令 '%s' 未找到\n", args[0]);
-                        exit(EXIT_FAILURE);
-                    }
-
-                    exit(EXIT_SUCCESS);
-                }
-            }
-
-            if (execvp(args[0], args) == -1) {
-                printf( "'%s' 不是内部或外部命令，也不是可运行的程序\n"
-                        "或批处理文件。\n", args[0]);
-                exit(EXIT_FAILURE);
-            }
-        } else if (pid < 0) {
-            // Fork 出错
-            printf("Fork Error");
-        } else {
-            // 父进程
-            printf("[%d] %d\n", ++background_counter, pid); // 打印后台任务的序号和进程号
-            return 1;
-        }
     }
+    return 1;
 }
 
-
+// 选择执行命令
 int lsh_execute(char **args) {
+    bool is_background = false;
     //检查是否有后台运行标记
     for(int i = 0; args[i] != NULL; i++) {
         if (strcmp(args[i], "&") == 0) {
             args[i] = NULL; // 将"&"从参数中删除
+            is_background = true;
             if(args[0] == NULL) {
                 printf("未预期的记号 '&' 附近有语法错误\n");
                 return 1;
             }
-            return lsh_launch(args, true);
+            break;
         }
     }
 
@@ -153,13 +136,29 @@ int lsh_execute(char **args) {
         return 1;
     }
 
+    // 检查是否为内置命令
     for (int i = 0; i < lsh_num_builtins(); i++) {
         if (strcmp(args[0], builtin_str[i]) == 0) {
-            return (*builtin_func[i])(args);
+            if(is_background){
+                pid_t pid = fork();
+                if(pid == 0){
+                    // 子进程执行内置命令
+                    exit((*builtin_func[i])(args));
+                } else if (pid < 0){
+                    perror("fork");
+                    return 1;
+                } else {
+                    // 父进程
+                    printf("[%d] %d\n", ++background_counter, pid); // 打印后台任务的序号和进程号
+                    return 1;
+                }
+            } else{
+                return (*builtin_func[i])(args);
+            }
         }
     }
 
-    return lsh_launch(args, false);
+    return lsh_launch(args, is_background);
 }
 
 int main() {
@@ -169,6 +168,5 @@ int main() {
     // 运行命令循环
     lsh_loop(history_path);
 
-    write_history(history_path);
     return EXIT_SUCCESS;
 }
