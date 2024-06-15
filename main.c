@@ -89,6 +89,9 @@ void lsh_loop(const char *history_file) {
     char *last_command = (last_history_entry != NULL) ? last_history_entry->line : NULL;
 
     do {
+        dup2(0, STDOUT_FILENO);
+        dup2(1, STDIN_FILENO);
+
         if(child_done > 0){
             print_completed_tasks();
             child_done = 0;
