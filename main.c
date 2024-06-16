@@ -177,6 +177,16 @@ int parse_redirection(char **args, int *in_fd, int *out_fd){
     return 0;
 }
 
+//// 检查命令是否为内置命令
+//bool is_builtin(char *command){
+//    for (int i = 0; i < lsh_num_builtins(); i++){
+//        if (strcmp(command, builtin_str[i]) == 0){
+//            return true;
+//        }
+//    }
+//    return false;
+//}
+
 // 执行单个命令
 int lsh_launch_single(char **args, int in_fd, int out_fd, bool is_background){
     pid_t pid;
@@ -213,49 +223,6 @@ int lsh_launch_single(char **args, int in_fd, int out_fd, bool is_background){
     return 1;
 }
 
-// 处理管道命令
-int lsh_launch_pipeline(char **commands, int num_commands, bool is_background){
-    int i, in_fd =0, fd[2];
-
-    for (i = 0; i < num_commands - 1; i++){
-        pipe(fd);
-        lsh_launch_single(commands[i], in_fd, fd[1], is_background);
-        close(fd[1]);
-        in_fd = fd[0];
-    }
-
-    lsh_launch_single(commands[i], in_fd, 1, is_background);
-
-    return 1;
-}
-
-
-// 外置命令
-int lsh_launch(char **args, bool is_background) {
-    pid_t pid;
-    int status;
-
-    pid = fork();
-    if (pid == 0) {
-        // 子进程
-        if (execvp(args[0], args) == -1) {
-            printf("'%s' 不是内部或外部命令，也不是可运行的程序\n"
-                   "或批处理文件。\n", args[0]);
-            exit(EXIT_FAILURE);
-        }
-    } else if (pid < 0) {
-        // Fork 出错
-        printf("Fork Error");
-    } else {
-        // 父进程
-        if (is_background) {
-            printf("[%d] %d\n", ++background_counter, pid); // 打印后台任务的序号和进程号
-        } else {
-            waitpid(pid, &status, WUNTRACED); // 等待子进程结束
-        }
-    }
-    return 1;
-}
 
 // 选择执行命令
 int lsh_execute(char **args) {
@@ -340,12 +307,10 @@ int lsh_execute(char **args) {
 
     // 执行命令
     if (num_commands > 1){
-        return lsh_launch_pipeline(pipe_commands, num_commands, is_background);
+        return 1;
     } else{
         return lsh_launch_single(args, in_fd, out_fd, is_background);
     }
-
-//    return lsh_launch(args, is_background);
 }
 
 int main() {
