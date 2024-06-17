@@ -11,6 +11,9 @@
 #include <readline/history.h>
 #include <stdbool.h>
 
+Alias aliases[MAX_ALIASES];
+int num_aliases = 0;
+
 char *builtin_str[] = {
         "cd",
         "help",
@@ -208,30 +211,40 @@ int lsh_history(char **args) {
 }
 
 int lsh_grep(char **args){
-    if (args[1] == NULL || args[2] == NULL){
-        fprintf(stderr, "Usage: grep <pattern> <file>\n");
+    if (args[1] == NULL){
+        fprintf(stderr, "Usage: grep <pattern> [<file>]\n");
         return 1;
     }
-    char *pattern = args[1];
-    char *filename = args[2];
 
-    FILE *file = fopen(filename, "r");
-    if (file == NULL){
-        perror("fopen");
-        return 1;
+    char *pattern = args[1];
+    char *filename = NULL;
+    FILE *file = stdin; // 默认从标准输入读取
+
+    if (args[2] != NULL){
+        filename = args[2];
+        file = fopen(filename, "r");
+        if (file == NULL){
+            perror("fopen");
+            return 1;
+        }
     }
 
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
 
+    // 从文件或标准输入中读取每一行数据
     while ((read = getline(&line, &len, file)) != -1){
         if (strstr(line, pattern) != NULL){
             printf("%s", line);
         }
     }
+
     free(line);
-    fclose(file);
+    if (file != stdin){
+        fclose(file); // 关闭文件，不关闭 stdin
+    }
+
     return 1;
 }
 
@@ -260,8 +273,8 @@ int lsh_echo(char **args){
     return 1;
 }
 
-int lsh_type(char **args){
-    if (args[1] == NULL){
+int lsh_type(char **args) {
+    if (args[1] == NULL) {
         fprintf(stderr, "lsh: 未提供命令名称\n");
         return 1;
     }
@@ -269,17 +282,51 @@ int lsh_type(char **args){
     char *command = args[1];
 
     // 检查是否是内置命令
-    if (is_builtin(command)){
+    if (is_builtin(command)) {
         printf("%s 是一个内置命令\n", command);
         return 1;
     }
 
-    // 检查是否是外部命令或别名
+    // 检查是否是别名
+    for (int i = 0; i < num_aliases; i++) {
+        if (strcmp(command, aliases[i].name) == 0) {
+            printf("%s 是一个别名: %s\n", command, aliases[i].cmd);
+            return 1;
+        }
+    }
+
+    // 检查是否是外部命令
+    char *path = getenv("PATH");
+    if (path == NULL) {
+        fprintf(stderr, "lsh: PATH 环境变量未设置\n");
+        return 1;
+    }
+
+    char *path_copy = strdup(path);
+    if (path_copy == NULL) {
+        perror("strdup");
+        return 1;
+    }
+
+    char *dir = strtok(path_copy, ":");
+    while (dir != NULL) {
+        char cmd_path[PATH_MAX];
+        snprintf(cmd_path, sizeof(cmd_path), "%s/%s", dir, command);
+        if (access(cmd_path, X_OK) == 0) {
+            printf("%s 是一个外部命令: %s\n", command, cmd_path);
+            free(path_copy);
+            return 1;
+        }
+        dir = strtok(NULL, ":");
+    }
+
+    free(path_copy);
+
+    printf("%s: 未找到命令\n", command);
     return 1;
 }
 
-Alias aliases[MAX_ALIASES];
-int num_aliases = 0;
+
 int lsh_alias(char **args){
     if (args[1] == NULL){
         // 如果没有提供参数，则显示所有别名
