@@ -7,8 +7,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <dirent.h>
-#include <errno.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
