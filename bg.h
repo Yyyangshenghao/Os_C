@@ -16,3 +16,9 @@ typedef struct BackgroundTask{
     pid_t pid;
     struct BackgroundTask *next;
 } BackgroundTask;
+
+void add_completed_task(int task_number, pid_t pid);
+
+void print_completed_tasks();
+void sigchld_handler(int sig) ;
+void setup_signal_handlers();

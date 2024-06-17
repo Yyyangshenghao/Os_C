@@ -8,5 +8,4 @@
 
 char **lsh_split_line(char *line);
 void lsh_loop(const char *history_file);
-int lsh_launch(char **args, bool is_background);
 int lsh_execute(char **args);

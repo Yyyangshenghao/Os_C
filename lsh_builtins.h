@@ -10,3 +10,5 @@ int lsh_exit(char **args);
 int lsh_ls(char **args);
 int lsh_cat(char **args);
 int lsh_history(char **args);
+int lsh_grep(char **args);
+int lsh_echo(char **args);

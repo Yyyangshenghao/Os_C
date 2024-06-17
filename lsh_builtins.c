@@ -9,6 +9,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <readline/history.h>
+#include <stdbool.h>
 
 char *builtin_str[] = {
         "cd",
@@ -17,6 +18,8 @@ char *builtin_str[] = {
         "ls",
         "cat",
         "history",
+        "grep",
+        "echo",
 };
 
 int (*builtin_func[]) (char **) = {
@@ -26,6 +29,8 @@ int (*builtin_func[]) (char **) = {
         &lsh_ls,
         &lsh_cat,
         &lsh_history,
+        &lsh_grep,
+        &lsh_echo,
 };
 
 int lsh_num_builtins() {
@@ -175,6 +180,57 @@ int lsh_history(char **args) {
     else {
         printf("'%s'为未知的参数\n",args[1]);
         return 1;
+    }
+}
+
+int lsh_grep(char **args){
+    if (args[1] == NULL || args[2] == NULL){
+        fprintf(stderr, "Usage: grep <pattern> <file>\n");
+        return 1;
+    }
+    char *pattern = args[1];
+    char *filename = args[2];
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL){
+        perror("fopen");
+        return 1;
+    }
+
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    while ((read = getline(&line, &len, file)) != -1){
+        if (strstr(line, pattern) != NULL){
+            printf("%s", line);
+        }
+    }
+    free(line);
+    fclose(file);
+    return 1;
+}
+
+int lsh_echo(char **args){
+    bool newline = true; // 默认情况下在最后输出换行符
+    int i = 1;
+
+    // 检查是否有 -n 选项
+    if (args[1] != NULL && strcmp(args[1], "-n") == 0){
+        newline = false;
+        i++;
+    }
+
+    // 输出所有参数
+    for (; args[i] != NULL; i++){
+        if (i > 1){
+            printf(" ");
+        }
+        printf("%s", args[i]);
+    }
+
+    if (newline){
+        printf("\n");
     }
 
     return 1;
