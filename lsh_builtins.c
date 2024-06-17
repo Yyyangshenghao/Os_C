@@ -20,6 +20,8 @@ char *builtin_str[] = {
         "history",
         "grep",
         "echo",
+        "type",
+        "alias",
 };
 
 int (*builtin_func[]) (char **) = {
@@ -31,12 +33,33 @@ int (*builtin_func[]) (char **) = {
         &lsh_history,
         &lsh_grep,
         &lsh_echo,
+        &lsh_type,
+        &lsh_alias,
 };
 
 int lsh_num_builtins() {
     return sizeof(builtin_str) / sizeof(char *);
 }
 
+// 检查命令是否为内置命令
+bool is_builtin(char *command) {
+    for (int i = 0; i < lsh_num_builtins(); i++) {
+        if (strcmp(command, builtin_str[i]) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 获取内置命令的索引
+int find_builtin_index(char *command) {
+    for (int i = 0; i < lsh_num_builtins(); i++) {
+        if (strcmp(command, builtin_str[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 /*
   内置命令的函数实现。
@@ -159,6 +182,7 @@ int lsh_cat(char **args) {
         putchar(c);
     }
     fclose(file);
+    printf("\n");
     return 1;
 }
 
@@ -234,6 +258,68 @@ int lsh_echo(char **args){
     }
 
     return 1;
+}
+
+int lsh_type(char **args){
+    if (args[1] == NULL){
+        fprintf(stderr, "lsh: 未提供命令名称\n");
+        return 1;
+    }
+
+    char *command = args[1];
+
+    // 检查是否是内置命令
+    if (is_builtin(command)){
+        printf("%s 是一个内置命令\n", command);
+        return 1;
+    }
+
+    // 检查是否是外部命令或别名
+    return 1;
+}
+
+Alias aliases[MAX_ALIASES];
+int num_aliases = 0;
+int lsh_alias(char **args){
+    if (args[1] == NULL){
+        // 如果没有提供参数，则显示所有别名
+        for (int i = 0; i < num_aliases; i++){
+            printf("%s='%s'\n", aliases[i].name, aliases[i].cmd);
+        }
+        return 1;
+    } else if (args[2] == NULL){
+        // 如果只提供了别名名称，则显示对应的命令
+        for (int i = 0; i <= num_aliases; i++){
+            if (strcmp(args[1], aliases[i].name) == 0){
+                printf("%s='%s'\n", aliases[i].name, aliases[i].cmd);
+                return 1;
+            }
+        }
+        fprintf(stderr, "alias: '%s' 未定义\n", args[1]);
+        return 1;
+    } else if (args[3] == NULL){
+        // 如果提供了别名名称和命令，则创建或更新别名
+        for (int i = 0; i < num_aliases; i++){
+            if (strcmp(args[1], aliases[i].name) == 0){
+                strncpy(aliases[i].cmd, args[2], MAX_ALIAS_CMD - 1);
+                return 1;
+            }
+        }
+
+        // 如果没有找到同名别名，则添加新的别名
+        if (num_aliases >= MAX_ALIASES){
+            fprintf(stderr, "alias: 别名太多，无法添加更多别名\n");
+            return 1;
+        }
+        strncpy(aliases[num_aliases].name, args[1], MAX_ALIAS_NAME - 1);
+        strncpy(aliases[num_aliases].cmd, args[2], MAX_ALIAS_CMD - 1);
+        num_aliases++;
+        return 1;
+    } else{
+        //如果提供了过多参数，则输出错误信息
+        fprintf(stderr, "alias: 过多参数\n");
+        return 1;
+    }
 }
 
 int lsh_exit(char **args) {

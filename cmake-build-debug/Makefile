@@ -153,6 +153,30 @@ bg.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/bg.c.s
 .PHONY : bg.c.s
 
+history.o: history.c.o
+.PHONY : history.o
+
+# target to build an object file
+history.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/history.c.o
+.PHONY : history.c.o
+
+history.i: history.c.i
+.PHONY : history.i
+
+# target to preprocess a source file
+history.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/history.c.i
+.PHONY : history.c.i
+
+history.s: history.c.s
+.PHONY : history.s
+
+# target to generate assembly for a file
+history.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/history.c.s
+.PHONY : history.c.s
+
 lsh_builtins.o: lsh_builtins.c.o
 .PHONY : lsh_builtins.o
 
@@ -237,6 +261,9 @@ help:
 	@echo "... bg.o"
 	@echo "... bg.i"
 	@echo "... bg.s"
+	@echo "... history.o"
+	@echo "... history.i"
+	@echo "... history.s"
 	@echo "... lsh_builtins.o"
 	@echo "... lsh_builtins.i"
 	@echo "... lsh_builtins.s"

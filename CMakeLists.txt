@@ -11,6 +11,8 @@ add_executable(Os_C main.c
         main.c
         bg.h
         bg.c
+        history.c
+        history.h
 )
 
 target_link_libraries(Os_C /usr/lib/x86_64-linux-gnu/libreadline.so.8)

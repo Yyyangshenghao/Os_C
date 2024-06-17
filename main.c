@@ -1,6 +1,7 @@
 #include "main.h"
 #include "lsh_builtins.h"
 #include "bg.h"
+#include "history.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,16 +23,8 @@ extern int (*builtin_func[]) (char **);
 extern volatile sig_atomic_t background_counter; // 记录后台任务的序号
 extern volatile sig_atomic_t child_done; //记录有多少个子进程完成
 extern BackgroundTask *completed_tasks;
-
-void init_history(const char *history_file) {
-    stifle_history(100);
-    using_history();
-    read_history(history_file);
-}
-
-void save_history(const char *history_file) {
-    write_history(history_file);
-}
+extern Alias aliases[MAX_ALIASES];
+extern int num_aliases;
 
 void lsh_loop(const char *history_file) {
     char cwd[PATH_MAX];
@@ -75,7 +68,6 @@ void lsh_loop(const char *history_file) {
 
         free(line);
         free(args);
-//        printf("\n");
     } while (status);
     save_history(history_file);
 
@@ -130,26 +122,6 @@ int parse_redirection(char **args, int *in_fd, int *out_fd) {
         }
     }
     return 0;
-}
-
-// 检查命令是否为内置命令
-bool is_builtin(char *command) {
-    for (int i = 0; i < lsh_num_builtins(); i++) {
-        if (strcmp(command, builtin_str[i]) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// 获取内置命令的索引
-int find_builtin_index(char *command) {
-    for (int i = 0; i < lsh_num_builtins(); i++) {
-        if (strcmp(command, builtin_str[i]) == 0) {
-            return i;
-        }
-    }
-    return -1;
 }
 
 // 执行内部命令
@@ -279,10 +251,7 @@ int lsh_launch_pipeline(char ***commands, int num_commands, bool is_background) 
 int lsh_execute(char **args) {
     bool is_background = false;
     int in_fd = 0, out_fd = 1;
-    char ***pipe_commands = malloc(PIPE_BUF_SIZE * sizeof(char **));
-    for (int i = 0; i < PIPE_BUF_SIZE; i++) {
-        pipe_commands[i] = malloc(PIPE_BUF_SIZE * sizeof(char *));
-    }
+    char ***pipe_commands = NULL;
     int num_commands = 0, cmd_index = 0;
 
     // 用户输入了一个空命令
@@ -303,7 +272,22 @@ int lsh_execute(char **args) {
         }
     }
 
+    // 计算命令的数量
+    for (int i = 0; args[i] != NULL; i++) {
+        if (strcmp(args[i], "|") == 0) {
+            num_commands++;
+        }
+    }
+    num_commands++; // 最后一个命令
+
+    // 分配内存
+    pipe_commands = malloc(num_commands * sizeof(char **));
+    for (int i = 0; i < num_commands; i++) {
+        pipe_commands[i] = malloc(PIPE_BUF_SIZE * sizeof(char *));
+    }
+
     // 解析管道命令
+    num_commands = 0;
     for (int i = 0; args[i] != NULL; i++) {
         if (strcmp(args[i], "|") == 0) {
             pipe_commands[num_commands][cmd_index] = NULL;
@@ -322,31 +306,37 @@ int lsh_execute(char **args) {
         return 1;
     }
 
-    if (num_commands > 1) {
-        int result = lsh_launch_pipeline(pipe_commands, num_commands, is_background);
-        for (int i = 0; i < PIPE_BUF_SIZE; i++) {
-            free(pipe_commands[i]);
-        }
-        free(pipe_commands);
-        return result;
-    } else {
-        if (is_builtin(args[0])) {
-            int result = execute_internal_command(find_builtin_index(args[0]), args, in_fd, out_fd, is_background);
-            for (int i = 0; i < PIPE_BUF_SIZE; i++) {
-                free(pipe_commands[i]);
+    // 解析别名
+    for (int i = 0; i < num_commands; i++) {
+        for (int j = 0; j < num_aliases; j++) {
+            if (strcmp(pipe_commands[i][0], aliases[j].name) == 0) {
+                free(pipe_commands[i][0]);
+                pipe_commands[i][0] = strdup(aliases[j].cmd);
+                break;
             }
-            free(pipe_commands);
-            return result;
-        } else {
-            int result = lsh_launch_single(args, in_fd, out_fd, is_background);
-            for (int i = 0; i < PIPE_BUF_SIZE; i++) {
-                free(pipe_commands[i]);
-            }
-            free(pipe_commands);
-            return result;
         }
     }
+
+    int result;
+    if (num_commands > 1) {
+        result = lsh_launch_pipeline(pipe_commands, num_commands, is_background);
+    } else {
+        if (is_builtin(args[0])) {
+            result = execute_internal_command(find_builtin_index(args[0]), args, in_fd, out_fd, is_background);
+        } else {
+            result = lsh_launch_single(args, in_fd, out_fd, is_background);
+        }
+    }
+
+    // 释放内存
+    for (int i = 0; i < num_commands; i++) {
+        free(pipe_commands[i]);
+    }
+    free(pipe_commands);
+
+    return result;
 }
+
 
 int main() {
     char* history_file = ".lsh_history";

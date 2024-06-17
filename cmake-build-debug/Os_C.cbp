@@ -82,6 +82,12 @@
 		<Unit filename="/home/ysh/CLionProjects/Os_C/bg.h">
 			<Option target="Os_C"/>
 		</Unit>
+		<Unit filename="/home/ysh/CLionProjects/Os_C/history.c">
+			<Option target="Os_C"/>
+		</Unit>
+		<Unit filename="/home/ysh/CLionProjects/Os_C/history.h">
+			<Option target="Os_C"/>
+		</Unit>
 		<Unit filename="/home/ysh/CLionProjects/Os_C/lsh_builtins.c">
 			<Option target="Os_C"/>
 		</Unit>
