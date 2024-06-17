@@ -1,4 +1,4 @@
-/snap/clion/274/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/ysh/CLionProjects/Os_C -B /home/ysh/CLionProjects/Os_C/cmake-build-debug
+/home/ysh/.cache/JetBrains/RemoteDev/dist/d7135fd7f807d_CLion-2024.1.3/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/ysh/CLionProjects/Os_C -B /home/ysh/CLionProjects/Os_C/cmake-build-debug
 CMake Deprecation Warning:
   Support for "Extra Generators" like
 

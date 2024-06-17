@@ -48,10 +48,10 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /snap/clion/274/bin/cmake/linux/x64/bin/cmake
+CMAKE_COMMAND = /home/ysh/.cache/JetBrains/RemoteDev/dist/d7135fd7f807d_CLion-2024.1.3/bin/cmake/linux/x64/bin/cmake
 
 # The command to remove a file.
-RM = /snap/clion/274/bin/cmake/linux/x64/bin/cmake -E rm -f
+RM = /home/ysh/.cache/JetBrains/RemoteDev/dist/d7135fd7f807d_CLion-2024.1.3/bin/cmake/linux/x64/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -68,7 +68,7 @@ CMAKE_BINARY_DIR = /home/ysh/CLionProjects/Os_C/cmake-build-debug
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "No interactive CMake dialog available..."
-	/snap/clion/274/bin/cmake/linux/x64/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	/home/ysh/.cache/JetBrains/RemoteDev/dist/d7135fd7f807d_CLion-2024.1.3/bin/cmake/linux/x64/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -78,7 +78,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake to regenerate build system..."
-	/snap/clion/274/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/home/ysh/.cache/JetBrains/RemoteDev/dist/d7135fd7f807d_CLion-2024.1.3/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -128,6 +128,30 @@ Os_C: cmake_check_build_system
 Os_C/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/build
 .PHONY : Os_C/fast
+
+bg.o: bg.c.o
+.PHONY : bg.o
+
+# target to build an object file
+bg.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/bg.c.o
+.PHONY : bg.c.o
+
+bg.i: bg.c.i
+.PHONY : bg.i
+
+# target to preprocess a source file
+bg.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/bg.c.i
+.PHONY : bg.c.i
+
+bg.s: bg.c.s
+.PHONY : bg.s
+
+# target to generate assembly for a file
+bg.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Os_C.dir/build.make CMakeFiles/Os_C.dir/bg.c.s
+.PHONY : bg.c.s
 
 lsh_builtins.o: lsh_builtins.c.o
 .PHONY : lsh_builtins.o
@@ -210,6 +234,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... Os_C"
+	@echo "... bg.o"
+	@echo "... bg.i"
+	@echo "... bg.s"
 	@echo "... lsh_builtins.o"
 	@echo "... lsh_builtins.i"
 	@echo "... lsh_builtins.s"
